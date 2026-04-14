@@ -1,4 +1,5 @@
-  #include <zephyr/kernel.h>
+//main.c
+  #include <zephyr/kernel.h>//定时器要用
   #include <zephyr/device.h>
   #include <zephyr/drivers/can.h>
   #include <zephyr/drivers/motor.h>
@@ -6,3 +7,43 @@
   #include <zephyr/drivers/uart.h>
   #include <zephyr/drivers/sbus.h>
   #include <math.h>
+
+int main(void){
+
+static const struct device *dm_motor = DEVICE_DT_GET(DM_MOTOR_NODE);
+
+motor_control(dm_motor, ENABLE_MOTOR);
+motor_set_mode(dm_motor,MIT);//一定要用
+
+motor_set_mit(dm_motor,2.0f,-90.0f,-0.1f);//速度，目标角度，力矩
+
+}
+
+//overlay文件配置
+ dm_motor {
+            dm_motor: dm_motor{
+                compatible = "dm,motor";
+                id = <4>;//自己定义一个就行
+                rx_id = <0x00>;
+                tx_id = <0x02>;//上位机查询
+                v_max = "785";
+                status = "okay";
+                can_channel = <&can1>;
+                controllers = <&dm_mit>;//使用mit模式
+                capabilities = "mit";开启开关
+                t_max = "5";
+                freq = <1000>;
+            };
+        };
+
+        vo: vo{
+            compatible = "pid,single";
+            k_p = "1.751";
+        };       
+        
+         dm_mit: dm_mit{
+            compatible = "pid,mit";
+            k_p = "3";
+            k_d="0.5";
+            
+            };
